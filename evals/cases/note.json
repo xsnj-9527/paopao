@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "category": "note",
+  "description": "便签工具 create_note(title, content)，两个参数都必填。重点是参数完整性与「什么该记、什么不该记」的边界。",
+  "now": "2026-09-14T22:30:00+08:00",
+  "cases": [
+    {
+      "id": "note-01",
+      "difficulty": "single",
+      "prompt": "帮我记个便签：牛奶、鸡蛋、面包",
+      "expect": {
+        "tools": ["create_note"],
+        "forbidden": ["create_reminder", "remember_fact"],
+        "args": {
+          "create_note": {
+            "title": { "nonEmpty": true },
+            "content": { "containsAny": ["牛奶", "鸡蛋", "面包"] }
+          }
+        },
+        "answerContains": []
+      },
+      "rationale": "显式要求记录 → 必须调 create_note，且 content 要含全部三项。"
+    },
+    {
+      "id": "note-02",
+      "difficulty": "single",
+      "prompt": "记一下，我明天要去医院复诊。",
+      "expect": {
+        "tools": ["create_note"],
+        "forbidden": ["create_reminder"],
+        "args": {
+          "create_note": {
+            "title": { "nonEmpty": true },
+            "content": { "containsAny": ["医院", "复诊"] }
+          }
+        }
+      },
+      "rationale": "「记一下」是便签语义，不是提醒——提醒必须带明确时间。这是 note/reminder 的经典混淆点。"
+    },
+    {
+      "id": "note-03",
+      "difficulty": "single",
+      "prompt": "把我刚才说的那个地址存成便签：海淀区信息路甲 9 号。",
+      "expect": {
+        "tools": ["create_note"],
+        "args": {
+          "create_note": {
+            "content": { "containsAny": ["信息路", "9 号"] }
+          }
+        }
+      },
+      "rationale": "长内容单字段场景；验证 content 不被截断、地址不被改写。"
+    },
+    {
+      "id": "note-04",
+      "difficulty": "multi-step",
+      "prompt": "现在几点？然后把「晚上记得取快递」记成便签。",
+      "expect": {
+        "tools": ["get_time", "create_note"],
+        "args": {
+          "create_note": { "content": { "containsAny": ["快递"] } }
+        }
+      },
+      "rationale": "两工具顺序组合：先取时间再写便签。顺序反了不影响正确性时允许，但两个都必须调到。"
+    },
+    {
+      "id": "note-05",
+      "difficulty": "negative",
+      "prompt": "我最近记性有点差，老是忘事。",
+      "expect": {
+        "tools": [],
+        "forbidden": ["create_note", "remember_fact", "create_reminder"],
+        "answerContains": []
+      },
+      "rationale": "反例：这是闲聊/倾诉，句子里有「记性」但没有要记录的内容。模型极易误触发。"
+    },
+    {
+      "id": "note-06",
+      "difficulty": "negative",
+      "prompt": "帮我把这个便签删掉吧。",
+      "expect": {
+        "tools": [],
+        "forbidden": ["create_note"],
+        "answerContains": []
+      },
+      "rationale": "反例：用户要删除，但没有删除工具可用。不得用 create_note 糊弄。"
+    }
+  ]
+}

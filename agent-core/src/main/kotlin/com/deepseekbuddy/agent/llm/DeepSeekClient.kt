@@ -1,9 +1,9 @@
-package com.deepseekbuddy.app.agent.llm
+package com.deepseekbuddy.agent.llm
 
-import android.util.Log
-import com.deepseekbuddy.app.agent.AgentConfig
-import com.deepseekbuddy.app.agent.ChatMessage
-import com.deepseekbuddy.app.agent.ToolCall
+import com.deepseekbuddy.agent.AgentConfig
+import com.deepseekbuddy.agent.AgentLogger
+import com.deepseekbuddy.agent.ChatMessage
+import com.deepseekbuddy.agent.ToolCall
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,17 +33,15 @@ class DeepSeekApiException(val code: Int, detail: String) :
 class DeepSeekNetworkException(cause: Throwable) :
     Exception("网络请求失败：${cause.message}", cause)
 
-data class ChatResponse(
-    val text: String,
-    val reasoningText: String,
-    val toolCalls: List<ToolCall>,
-)
-
 /**
  * DeepSeek 流式客户端（OpenAI 兼容接口）。
  * SSE 逐行解析；协程取消时主动 cancel OkHttp call。
  */
-class DeepSeekClient(private val config: AgentConfig) {
+class DeepSeekClient(
+    private val config: AgentConfig,
+    /** 日志出口。默认吞掉。 */
+    private val log: AgentLogger = AgentLogger.None,
+) : LlmClient {
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -52,11 +50,11 @@ class DeepSeekClient(private val config: AgentConfig) {
         .readTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    suspend fun chat(
+    override suspend fun chat(
         messages: List<ChatMessage>,
         tools: List<JsonObject>,
         onDelta: (String) -> Unit,
-        onReasoning: (String) -> Unit = {},
+        onReasoning: (String) -> Unit,
     ): ChatResponse = withContext(Dispatchers.IO) {
         val body = buildJsonObject {
             put("model", config.model)
@@ -88,7 +86,11 @@ class DeepSeekClient(private val config: AgentConfig) {
                     }
                 }
             }
-            putJsonArray("tools") { tools.forEach { add(it) } }
+            // 没有工具时**不发** tools 字段：空数组白占 token，
+            // 个别网关还会对空 tools 报错。
+            if (tools.isNotEmpty()) {
+                putJsonArray("tools") { tools.forEach { add(it) } }
+            }
         }
 
         val request = Request.Builder()
@@ -101,10 +103,10 @@ class DeepSeekClient(private val config: AgentConfig) {
         val call = http.newCall(request)
         val cancelHandle = coroutineContext[Job]?.invokeOnCompletion { call.cancel() }
         try {
-            Log.d(TAG, "POST ${config.baseUrl}/chat/completions | model=${config.model} | messages=${messages.size} | tools=${tools.size}")
+            log.d(TAG, "POST ${config.baseUrl}/chat/completions | model=${config.model} | messages=${messages.size} | tools=${tools.size}")
             call.execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    Log.w(TAG, "HTTP ${resp.code}")
+                    log.w(TAG, "HTTP ${resp.code}")
                     throw parseError(resp)
                 }
                 val source = resp.body?.source() ?: return@use ChatResponse("", "", emptyList())
@@ -128,22 +130,37 @@ class DeepSeekClient(private val config: AgentConfig) {
                     }
                     choice.delta.toolCalls?.forEach { tc ->
                         val acc = pending.getOrPut(tc.index) { PendingToolCall() }
-                        tc.id?.let { acc.id = it }
-                        tc.function?.name?.let { acc.name = it }
+                        // id 只认第一个非空的
+                        if (acc.id == null && !tc.id.isNullOrEmpty()) acc.id = tc.id
+                        // name 必须**拼接**：模型可能把它拆成多片送出，
+                        // 覆盖式赋值会丢掉前缀，导致工具名对不上（"create_" + "reminder"）。
+                        tc.function?.name?.let { acc.name = (acc.name ?: "") + it }
                         tc.function?.arguments?.let { acc.arguments.append(it) }
                     }
                 }
                 val result = ChatResponse(
                     text.toString(),
                     reasoning.toString(),
-                    pending.map { (_, v) -> ToolCall(v.id ?: "", v.name ?: "", v.arguments.toString()) },
+                    // 按 index 排序：执行顺序要与模型的意图一致，
+                    // 否则「先查时间再设提醒」可能反过来执行。
+                    pending.entries.sortedBy { it.key }.mapNotNull { (index, v) ->
+                        val name = v.name ?: ""
+                        // 没有 name 的碎片是无法执行的半截调用，丢掉
+                        if (name.isEmpty()) return@mapNotNull null
+                        ToolCall(
+                            id = v.id ?: "call_$index",
+                            name = name,
+                            // 空参数补成 {}，省得下游再兜一次解析失败
+                            argumentsJson = if (v.arguments.isEmpty()) "{}" else v.arguments.toString(),
+                        )
+                    },
                 )
-                Log.d(TAG, "done: textLen=${result.text.length} reasoningLen=${result.reasoningText.length} toolCalls=${result.toolCalls.size}")
+                log.d(TAG, "done: textLen=${result.text.length} reasoningLen=${result.reasoningText.length} toolCalls=${result.toolCalls.size}")
                 result
             }
         } catch (e: IOException) {
             if (e.message?.contains("Canceled") == true) throw CancellationException("用户停止")
-            Log.e(TAG, "io error: ${e.message}")
+            log.e(TAG, "io error: ${e.message}")
             throw DeepSeekNetworkException(e)
         } finally {
             cancelHandle?.dispose()
@@ -155,7 +172,7 @@ class DeepSeekClient(private val config: AgentConfig) {
         val detail = runCatching {
             json.parseToJsonElement(raw).jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content
         }.getOrNull() ?: raw.take(200)
-        Log.e(TAG, "api error body: $raw".take(500))
+        log.e(TAG, "api error body: $raw".take(500))
         return DeepSeekApiException(resp.code, detail)
     }
 

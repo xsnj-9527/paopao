@@ -50,8 +50,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.deepseekbuddy.app.agent.ChatMessage
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
+import com.deepseekbuddy.agent.ChatMessage
+import com.deepseekbuddy.agent.llm.DeepSeekClient
 import com.deepseekbuddy.app.agent.persona.PersonaTemplates
 import com.deepseekbuddy.app.data.PersonaRepository
 import com.deepseekbuddy.app.data.SettingsStore

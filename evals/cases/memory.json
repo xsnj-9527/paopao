@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "category": "memory",
+  "description": "长期记忆工具 remember_fact(content, category?, importance?)。重点是「用户明确要求记住」这个触发条件，以及 category / importance 的语义正确性。",
+  "now": "2026-09-14T22:30:00+08:00",
+  "cases": [
+    {
+      "id": "mem-01",
+      "difficulty": "single",
+      "prompt": "记住我养了一只叫豆豆的猫。",
+      "expect": {
+        "tools": ["remember_fact"],
+        "forbidden": ["create_note", "create_reminder"],
+        "args": {
+          "remember_fact": {
+            "content": { "containsAny": ["豆豆", "猫"] }
+          }
+        }
+      },
+      "rationale": "显式「记住」→ remember_fact。与 create_note 的区别是：这是关于用户本人的长期事实，不是一次性待办。"
+    },
+    {
+      "id": "mem-02",
+      "difficulty": "single",
+      "prompt": "记住我不吃香菜，以后点菜别给我推荐。",
+      "expect": {
+        "tools": ["remember_fact"],
+        "args": {
+          "remember_fact": {
+            "content": { "containsAny": ["香菜"] },
+            "category": { "equalsAny": ["偏好"] }
+          }
+        }
+      },
+      "rationale": "category 语义判定：饮食忌口属于「偏好」而不是「事实」。"
+    },
+    {
+      "id": "mem-03",
+      "difficulty": "single",
+      "prompt": "这个很重要，一定要记住：我对花生严重过敏，会休克。",
+      "expect": {
+        "tools": ["remember_fact"],
+        "args": {
+          "remember_fact": {
+            "content": { "containsAny": ["过敏", "花生"] },
+            "importance": { "intRange": [4, 5] }
+          }
+        }
+      },
+      "rationale": "用户显式强调重要性 → importance 应显著高于默认 3。省略 importance 时默认 3，这条会失败。"
+    },
+    {
+      "id": "mem-04",
+      "difficulty": "single",
+      "prompt": "记住我下周三要去上海出差，顺便帮我记一条便签：带充电器。",
+      "expect": {
+        "tools": ["remember_fact", "create_note"],
+        "args": {
+          "remember_fact": { "content": { "containsAny": ["上海"] } },
+          "create_note": { "content": { "containsAny": ["充电器"] } }
+        }
+      },
+      "rationale": "一句话里同时含长期事实与一次性便签 → 两个工具都要调。考察意图拆解能力。"
+    },
+    {
+      "id": "mem-05",
+      "difficulty": "negative",
+      "prompt": "我今天心情不太好，工作上有点烦。",
+      "expect": {
+        "tools": [],
+        "forbidden": ["remember_fact", "create_note", "create_reminder"],
+        "answerContains": []
+      },
+      "rationale": "反例：情绪倾诉不是要求记录事实。模型很容易「体贴地」把它存成记忆——这是隐私越界。"
+    },
+    {
+      "id": "mem-06",
+      "difficulty": "negative",
+      "prompt": "你猜我喜欢什么颜色？",
+      "expect": {
+        "tools": [],
+        "forbidden": ["remember_fact"],
+        "answerContains": []
+      },
+      "rationale": "反例：猜测/闲聊，没有可记住的事实。不得凭空捏造一条记忆。"
+    }
+  ]
+}

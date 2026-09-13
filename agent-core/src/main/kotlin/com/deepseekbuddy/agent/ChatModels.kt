@@ -1,4 +1,4 @@
-package com.deepseekbuddy.app.agent
+package com.deepseekbuddy.agent
 
 /** 与 DeepSeek API 交互的消息体（OpenAI 兼容格式） */
 data class ChatMessage(

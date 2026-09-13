@@ -1,6 +1,6 @@
-package com.deepseekbuddy.app.agent.tools
+package com.deepseekbuddy.agent.tools
 
-import com.deepseekbuddy.app.data.MemoryRepository
+import com.deepseekbuddy.agent.ports.MemoryStore
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -14,7 +14,7 @@ import kotlinx.serialization.json.putJsonObject
  * 显式记忆工具：用户说「记住…/别忘了…」时由模型调用。
  * 记忆按角色隔离——只记入当前角色（像真朋友一样，只记得你告诉 TA 的事）。
  */
-class RememberFactTool(private val memories: MemoryRepository) : Tool {
+class RememberFactTool(private val memories: MemoryStore) : Tool {
 
     override val name = "remember_fact"
     override val description =

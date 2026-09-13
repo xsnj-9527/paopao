@@ -11,25 +11,26 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.deepseekbuddy.app.agent.LogcatLogger
 import com.deepseekbuddy.app.DeepSeekBuddyApp
-import com.deepseekbuddy.app.agent.AgentConfig
-import com.deepseekbuddy.app.agent.AgentEngine
-import com.deepseekbuddy.app.agent.ChatMessage
+import com.deepseekbuddy.agent.AgentConfig
+import com.deepseekbuddy.agent.AgentEngine
+import com.deepseekbuddy.agent.ChatMessage
 import com.deepseekbuddy.app.agent.context.DayDiaryUpdater
 import com.deepseekbuddy.app.agent.context.MemoryExtractor
 import com.deepseekbuddy.app.agent.context.RollingSummarizer
 import com.deepseekbuddy.app.agent.context.TokenBudget
-import com.deepseekbuddy.app.agent.llm.DeepSeekApiException
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
-import com.deepseekbuddy.app.agent.llm.DeepSeekNetworkException
+import com.deepseekbuddy.agent.llm.DeepSeekApiException
+import com.deepseekbuddy.agent.llm.DeepSeekClient
+import com.deepseekbuddy.agent.llm.DeepSeekNetworkException
 import com.deepseekbuddy.app.agent.persona.Persona
 import com.deepseekbuddy.app.agent.persona.PersonaTemplates
 import com.deepseekbuddy.app.agent.persona.buildSystemPrompt
-import com.deepseekbuddy.app.agent.tools.NoteTool
-import com.deepseekbuddy.app.agent.tools.RememberFactTool
-import com.deepseekbuddy.app.agent.tools.ReminderTool
-import com.deepseekbuddy.app.agent.tools.TimeTool
-import com.deepseekbuddy.app.agent.tools.ToolRegistry
+import com.deepseekbuddy.agent.tools.NoteTool
+import com.deepseekbuddy.agent.tools.RememberFactTool
+import com.deepseekbuddy.agent.tools.ReminderTool
+import com.deepseekbuddy.agent.tools.TimeTool
+import com.deepseekbuddy.agent.tools.ToolRegistry
 import com.deepseekbuddy.app.data.SettingsStore
 import com.deepseekbuddy.app.reminder.ReminderScheduler
 import kotlinx.coroutines.CancellationException
@@ -140,10 +141,14 @@ class ChatViewModel(
             NoteTool(app.container.notes),
         )
     )
-    private val engine = AgentEngine(registry) { config -> DeepSeekClient(config) }
-    private val summarizer = RollingSummarizer { config -> DeepSeekClient(config) }
-    private val extractor = MemoryExtractor { config -> DeepSeekClient(config) }
-    private val diaryUpdater = DayDiaryUpdater(app.container.diaries) { config -> DeepSeekClient(config) }
+    private val engine = AgentEngine(
+        registry,
+        { config -> DeepSeekClient(config, LogcatLogger) },
+        LogcatLogger,
+    )
+    private val summarizer = RollingSummarizer { config -> DeepSeekClient(config, LogcatLogger) }
+    private val extractor = MemoryExtractor { config -> DeepSeekClient(config, LogcatLogger) }
+    private val diaryUpdater = DayDiaryUpdater(app.container.diaries) { config -> DeepSeekClient(config, LogcatLogger) }
     private val repo = app.container.repository
     private val diaries = app.container.diaries
 

@@ -12,8 +12,8 @@ import androidx.work.WorkerParameters
 import com.deepseekbuddy.app.DeepSeekBuddyApp
 import com.deepseekbuddy.app.MainActivity
 import com.deepseekbuddy.app.R
-import com.deepseekbuddy.app.agent.ChatMessage
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
+import com.deepseekbuddy.agent.ChatMessage
+import com.deepseekbuddy.agent.llm.DeepSeekClient
 import com.deepseekbuddy.app.data.SettingsStore
 import java.time.LocalTime
 

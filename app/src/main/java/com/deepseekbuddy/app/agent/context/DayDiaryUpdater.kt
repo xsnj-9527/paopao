@@ -1,8 +1,8 @@
 package com.deepseekbuddy.app.agent.context
 
-import com.deepseekbuddy.app.agent.AgentConfig
-import com.deepseekbuddy.app.agent.ChatMessage
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
+import com.deepseekbuddy.agent.AgentConfig
+import com.deepseekbuddy.agent.ChatMessage
+import com.deepseekbuddy.agent.llm.DeepSeekClient
 import com.deepseekbuddy.app.data.DiaryRepository
 import java.time.LocalDate
 

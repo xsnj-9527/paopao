@@ -1,6 +1,6 @@
-package com.deepseekbuddy.app.agent.tools
+package com.deepseekbuddy.agent.tools
 
-import com.deepseekbuddy.app.data.NotesRepository
+import com.deepseekbuddy.agent.ports.NoteStore
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -11,7 +11,7 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 
 /** 创建便签/笔记 */
-class NoteTool(private val notes: NotesRepository) : Tool {
+class NoteTool(private val notes: NoteStore) : Tool {
 
     override val name = "create_note"
     override val description =

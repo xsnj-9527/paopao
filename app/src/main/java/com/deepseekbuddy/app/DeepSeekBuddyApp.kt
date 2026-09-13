@@ -12,7 +12,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.deepseekbuddy.app.agent.context.BehaviorAnalyzer
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
+import com.deepseekbuddy.agent.llm.DeepSeekClient
 import com.deepseekbuddy.app.data.AppContainer
 import com.deepseekbuddy.app.data.SettingsStore
 import com.deepseekbuddy.app.reminder.ReminderScheduler

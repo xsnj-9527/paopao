@@ -53,6 +53,10 @@ kotlin {
 }
 
 dependencies {
+    // Agent 内核（纯 JVM，无 Android 依赖）。源码在 ../agent-core，
+    // 通过 settings.gradle.kts 里的 includeBuild 组合进来。
+    implementation("com.deepseekbuddy:agent-core:0.1.0")
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,8 +1,8 @@
 package com.deepseekbuddy.app.agent.context
 
-import com.deepseekbuddy.app.agent.AgentConfig
-import com.deepseekbuddy.app.agent.ChatMessage
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
+import com.deepseekbuddy.agent.AgentConfig
+import com.deepseekbuddy.agent.ChatMessage
+import com.deepseekbuddy.agent.llm.DeepSeekClient
 
 /**
  * 滚动摘要器：历史超预算时把整段对话压缩成 200 字以内第三人称日记，

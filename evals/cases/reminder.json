@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "category": "reminder",
+  "description": "提醒工具 create_reminder(title, triggerAt)，triggerAt 必须是 ISO 8601。这是四类工具里失败率最高的一类——模型要把「明天早上七点半」这种相对表述算成绝对时间戳，算错就是硬失败。",
+  "now": "2026-09-14T22:30:00+08:00",
+  "nowNote": "2026-09-14 是星期一 22:30（+08:00）。所有相对时间都以此为基准，冻结时间是为了让本套用例可回归。",
+  "cases": [
+    {
+      "id": "rem-01",
+      "difficulty": "single",
+      "prompt": "明天早上七点半叫我起床。",
+      "expect": {
+        "tools": ["create_reminder"],
+        "forbidden": ["create_note"],
+        "args": {
+          "create_reminder": {
+            "title": { "nonEmpty": true },
+            "triggerAt": { "iso8601": true, "at": "2026-09-15T07:30:00+08:00" }
+          }
+        }
+      },
+      "rationale": "基准用例：相对日期 + 相对时段都要算对。now 是 22:30，所以「明天早上」= 09-15 而不是 09-14。"
+    },
+    {
+      "id": "rem-02",
+      "difficulty": "single",
+      "prompt": "20 分钟后提醒我关火。",
+      "expect": {
+        "tools": ["create_reminder"],
+        "args": {
+          "create_reminder": {
+            "title": { "containsAny": ["关火"] },
+            "triggerAt": { "iso8601": true, "at": "2026-09-14T22:50:00+08:00" }
+          }
+        }
+      },
+      "rationale": "纯相对偏移，最容易算错分钟数。"
+    },
+    {
+      "id": "rem-03",
+      "difficulty": "hard",
+      "prompt": "今晚 8 点提醒我看球赛。",
+      "expect": {
+        "tools": ["create_reminder"],
+        "args": {
+          "create_reminder": {
+            "triggerAt": { "iso8601": true }
+          }
+        }
+      },
+      "rationale": "陷阱：now 是 22:30，今天 20:00 已经过去了。正确做法是追问用户是不是指明天，或明确说明已顺延到次日——两种都可接受，但不接受「默默设一个已经过去的时间」。此项由 runner 的时序断言单独判定：triggerAt 的瞬时必须晚于 now。"
+    },
+    {
+      "id": "rem-04",
+      "difficulty": "hard",
+      "prompt": "下周一早上 9 点提醒我开组会。",
+      "expect": {
+        "tools": ["create_reminder"],
+        "args": {
+          "create_reminder": {
+            "triggerAt": { "iso8601": true, "at": "2026-09-21T09:00:00+08:00" }
+          }
+        }
+      },
+      "rationale": "now 是星期一。中文「下周一」在周一当天说出，指的是 7 天后的 09-21，不是当天。跨周推算是最典型的失败点。"
+    },
+    {
+      "id": "rem-05",
+      "difficulty": "single",
+      "prompt": "帮我设个提醒：2026 年 10 月 1 日上午 10 点，看阅兵。",
+      "expect": {
+        "tools": ["create_reminder"],
+        "args": {
+          "create_reminder": {
+            "title": { "containsAny": ["阅兵"] },
+            "triggerAt": { "iso8601": true, "at": "2026-10-01T10:00:00+08:00" }
+          }
+        }
+      },
+      "rationale": "绝对日期 + 中文时段。考察格式转换，不涉及跨周推算。"
+    },
+    {
+      "id": "rem-06",
+      "difficulty": "negative",
+      "prompt": "记得提醒我一下那件事。",
+      "expect": {
+        "tools": [],
+        "forbidden": ["create_reminder"],
+        "answerContains": []
+      },
+      "rationale": "关键反例：用户要求设提醒，但**没有时间信息**。正确行为是追问「什么事、什么时候」，而不是编造一个 triggerAt。这条直接测「模型是否会为了完成任务而编造参数」。"
+    },
+    {
+      "id": "rem-07",
+      "difficulty": "single",
+      "prompt": "我明天要开会，帮我记一条便签写「准备 PPT」，不用提醒。",
+      "expect": {
+        "tools": ["create_note"],
+        "forbidden": ["create_reminder"],
+        "args": {
+          "create_note": { "content": { "containsAny": ["PPT"] } }
+        }
+      },
+      "rationale": "用户显式说「不用提醒」→ 只能便签。考察是否尊重显式否定指令。"
+    },
+    {
+      "id": "rem-08",
+      "difficulty": "multi-step",
+      "prompt": "明天早上 7 点叫我起床，晚上 11 点提醒我睡觉。",
+      "expect": {
+        "tools": ["create_reminder", "create_reminder"],
+        "args": {
+          "create_reminder": {
+            "triggerAt": { "iso8601": true }
+          }
+        }
+      },
+      "rationale": "一句话两条提醒 → 必须调两次，且时间是两个不同的值。只调一次就是漏参。"
+    }
+  ]
+}

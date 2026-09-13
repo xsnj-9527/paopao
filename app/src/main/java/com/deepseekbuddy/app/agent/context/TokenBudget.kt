@@ -1,6 +1,6 @@
 package com.deepseekbuddy.app.agent.context
 
-import com.deepseekbuddy.app.agent.ChatMessage
+import com.deepseekbuddy.agent.ChatMessage
 
 /**
  * token 预算：中文约 1 token/1.5 字，按 2 字符/token 保守估算。

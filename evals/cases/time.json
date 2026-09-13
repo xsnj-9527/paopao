@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "category": "time",
+  "description": "时间类工具 get_time。重点是「该问就问、不该问别乱问」——模型经常自己推算日期，这是最常见的一类失败。",
+  "now": "2026-09-14T22:30:00+08:00",
+  "cases": [
+    {
+      "id": "time-01",
+      "difficulty": "single",
+      "prompt": "现在几点了？",
+      "expect": {
+        "tools": ["get_time"],
+        "forbidden": ["create_reminder", "create_note", "remember_fact"],
+        "answerContains": []
+      },
+      "rationale": "最基础的单工具调用。系统提示里明确写了「用户问时间时调用，不要自己推算」。"
+    },
+    {
+      "id": "time-02",
+      "difficulty": "single",
+      "prompt": "今天几号？星期几？",
+      "expect": {
+        "tools": ["get_time"],
+        "forbidden": ["create_note", "remember_fact"]
+      },
+      "rationale": "问日期同样命中 get_time，不该靠模型记忆回答。"
+    },
+    {
+      "id": "time-03",
+      "difficulty": "single",
+      "prompt": "你那边现在是白天还是晚上？",
+      "expect": {
+        "tools": ["get_time"],
+        "forbidden": []
+      },
+      "rationale": "口语化问法，仍然需要真实时间而不是编造。"
+    },
+    {
+      "id": "time-04",
+      "difficulty": "negative",
+      "prompt": "1+1 等于几？",
+      "expect": {
+        "tools": [],
+        "forbidden": ["get_time", "create_reminder", "create_note", "remember_fact"],
+        "answerContains": ["2"]
+      },
+      "rationale": "反例：与时间无关的问题不得触发工具调用。防止「为了显得在干活而乱调工具」。"
+    },
+    {
+      "id": "time-05",
+      "difficulty": "negative",
+      "prompt": "你还记得我上次说什么时候去北京吗？我们之前聊过。",
+      "expect": {
+        "tools": [],
+        "forbidden": ["get_time"],
+        "answerContains": []
+      },
+      "rationale": "反例：这是回忆对话内容，不是问当前时间。容易误触发 get_time。"
+    }
+  ]
+}

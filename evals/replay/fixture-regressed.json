@@ -1,0 +1,477 @@
+{
+  "version": 1,
+  "note": "故意造出来的退化夹具，用于验证回归对比能识别「新失败」",
+  "cases": {
+    "time-01": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "text": "现在是晚上 22:30。"
+      }
+    ],
+    "time-02": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "text": "今天是 2026 年 9 月 14 日，星期一。"
+      }
+    ],
+    "time-03": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "text": "现在是晚上 22:30，该休息了。"
+      }
+    ],
+    "time-04": [
+      {
+        "text": "1+1 等于 2。"
+      }
+    ],
+    "time-05": [
+      {
+        "text": "抱歉，我这边没有关于你去北京的记录。"
+      }
+    ],
+    "note-01": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"购物清单\",\"content\":\"牛奶、鸡蛋、面包\"}"
+          }
+        ]
+      },
+      {
+        "text": "已经记下购物清单：牛奶、鸡蛋、面包。"
+      }
+    ],
+    "note-02": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"复诊\",\"content\":\"明天要去医院复诊\"}"
+          }
+        ]
+      },
+      {
+        "text": "记好了，明天去医院复诊。"
+      }
+    ],
+    "note-03": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"地址\",\"content\":\"海淀区信息路甲 9 号\"}"
+          }
+        ]
+      },
+      {
+        "text": "地址已存成便签。"
+      }
+    ],
+    "note-04": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"取快递\",\"content\":\"晚上记得取快递\"}"
+          }
+        ]
+      },
+      {
+        "text": "现在是 22:30，便签也记好了。"
+      }
+    ],
+    "note-05": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"用户记性差\"}"
+          }
+        ]
+      },
+      {
+        "text": "好的"
+      }
+    ],
+    "note-06": [
+      {
+        "text": "抱歉，我现在只能新建便签，还不能删除。"
+      }
+    ],
+    "mem-01": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"用户养了一只叫豆豆的猫\",\"category\":\"事实\"}"
+          }
+        ]
+      },
+      {
+        "text": "记住了，你有一只叫豆豆的猫。"
+      }
+    ],
+    "mem-02": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"不吃香菜\",\"category\":\"事实\"}"
+          }
+        ]
+      },
+      {
+        "text": "记住了，以后点菜不会给你推荐香菜。"
+      }
+    ],
+    "mem-03": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"对花生严重过敏，会休克\",\"category\":\"事实\",\"importance\":5}"
+          }
+        ]
+      },
+      {
+        "text": "已经重点记下：你对花生严重过敏。"
+      }
+    ],
+    "mem-04": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"下周三要去上海出差\",\"category\":\"任务\"}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"出差行李\",\"content\":\"带充电器\"}"
+          }
+        ]
+      },
+      {
+        "text": "两件事都办好了。"
+      }
+    ],
+    "mem-05": [
+      {
+        "text": "听起来今天不太顺。想说说话我都在。"
+      }
+    ],
+    "mem-06": [
+      {
+        "text": "我猜不出来，你直接告诉我吧。"
+      }
+    ],
+    "rem-01": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"起床\",\"triggerAt\":\"2026-09-15T09:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "明天早上 7 点半叫你起床。"
+      }
+    ],
+    "rem-02": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"关火\",\"triggerAt\":\"2026-09-14T22:50:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "20 分钟后提醒你关火。"
+      }
+    ],
+    "rem-03": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"看球赛\",\"triggerAt\":\"2026-09-15T20:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "今晚 8 点已经过了，我给你设到明天晚上 8 点，可以吗？"
+      }
+    ],
+    "rem-04": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"开组会\",\"triggerAt\":\"2026-09-21T09:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "下周一早上 9 点提醒你开组会。"
+      }
+    ],
+    "rem-05": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"看阅兵\",\"triggerAt\":\"2026-01-01T10:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "10 月 1 日上午 10 点提醒你看阅兵。"
+      }
+    ],
+    "rem-06": [
+      {
+        "text": "是哪件事、想让我什么时候提醒你？说具体点我马上设。"
+      }
+    ],
+    "rem-07": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"开会准备\",\"content\":\"准备 PPT\"}"
+          }
+        ]
+      },
+      {
+        "text": "记成便签了，没有设提醒。"
+      }
+    ],
+    "rem-08": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"起床\",\"triggerAt\":\"2026-09-15T07:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"睡觉\",\"triggerAt\":\"2026-09-14T23:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "两条提醒都设好了。"
+      }
+    ],
+    "multi-01": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"关火\",\"triggerAt\":\"2026-09-14T22:50:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"做饭\",\"content\":\"今天做了番茄炒蛋\"}"
+          }
+        ]
+      },
+      {
+        "text": "提醒和便签都办好了。"
+      }
+    ],
+    "multi-02": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"喝水\",\"triggerAt\":\"2026-09-14T23:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "现在是 22:30，30 分钟后提醒你喝水。"
+      }
+    ],
+    "multi-03": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"每周三晚上要打球\",\"category\":\"任务\"}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "text": "记住了，每周三晚上打球。现在是 22:30。"
+      }
+    ],
+    "multi-04": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "remember_fact",
+            "argumentsJson": "{\"content\":\"下个月要搬家\",\"category\":\"任务\"}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c3",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"交房租\",\"triggerAt\":\"2026-09-15T08:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "三件事都办好了。"
+      }
+    ],
+    "multi-05": [
+      {
+        "text": "今天还不错，谢谢关心。你呢？"
+      }
+    ],
+    "multi-06": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "create_note",
+            "argumentsJson": "{\"title\":\"出差准备\",\"content\":\"订酒店\"}"
+          }
+        ]
+      },
+      {
+        "text": "便签记好了，别忘了订酒店。"
+      }
+    ],
+    "multi-07": [
+      {
+        "text": "你说过你对芒果过敏，让我记住。"
+      }
+    ],
+    "multi-08": [
+      {
+        "toolCalls": [
+          {
+            "id": "c1",
+            "name": "get_time",
+            "argumentsJson": "{}"
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "id": "c2",
+            "name": "create_reminder",
+            "argumentsJson": "{\"title\":\"该睡觉了\",\"triggerAt\":\"2026-09-14T23:00:00+08:00\"}"
+          }
+        ]
+      },
+      {
+        "text": "现在是 22:30，已经过了晚上 10 点，设个提醒让你早点睡。"
+      }
+    ]
+  }
+}

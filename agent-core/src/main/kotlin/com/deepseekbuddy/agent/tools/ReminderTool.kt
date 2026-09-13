@@ -1,6 +1,6 @@
-package com.deepseekbuddy.app.agent.tools
+package com.deepseekbuddy.agent.tools
 
-import com.deepseekbuddy.app.reminder.ReminderScheduler
+import com.deepseekbuddy.agent.ports.ReminderGateway
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -15,7 +15,11 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /** 创建提醒：AlarmManager + 通知 */
-class ReminderTool(private val scheduler: ReminderScheduler) : Tool {
+class ReminderTool(
+    private val scheduler: ReminderGateway,
+    /** 当前时间源。注入之后评测可以冻结时间,让「20 分钟后」这类用例可回归。 */
+    private val now: () -> Long = System::currentTimeMillis,
+) : Tool {
 
     override val name = "create_reminder"
     override val description =
@@ -44,7 +48,7 @@ class ReminderTool(private val scheduler: ReminderScheduler) : Tool {
             ?: return ToolResult.fail("缺少 triggerAt 参数")
         val millis = parseTime(triggerAt)
             ?: return ToolResult.fail("无法解析时间：$triggerAt，请使用 ISO 8601 格式（如 2026-08-13T20:00:00+08:00）")
-        if (millis <= System.currentTimeMillis()) {
+        if (millis <= now()) {
             return ToolResult.fail("提醒时间必须晚于当前时间")
         }
         scheduler.schedule(millis, title)

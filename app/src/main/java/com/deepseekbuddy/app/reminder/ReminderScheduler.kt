@@ -8,15 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import com.deepseekbuddy.agent.ports.ReminderGateway
 import com.deepseekbuddy.app.MainActivity
 import com.deepseekbuddy.app.R
 
-class ReminderScheduler(private val context: Context) {
+class ReminderScheduler(private val context: Context) : ReminderGateway {
 
     private val app = context.applicationContext
 
     /** 应用内通知路径：精确闹钟 + 通知（App 被杀/被冻结时不保证送达） */
-    fun schedule(triggerAtMillis: Long, title: String) {
+    override fun schedule(triggerAtMillis: Long, title: String) {
         val intent = Intent(app, ReminderReceiver::class.java)
             .putExtra(ReminderReceiver.EXTRA_TITLE, title)
         val pi = PendingIntent.getBroadcast(

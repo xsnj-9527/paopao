@@ -1,4 +1,4 @@
-package com.deepseekbuddy.app.agent.tools
+package com.deepseekbuddy.agent.tools
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json

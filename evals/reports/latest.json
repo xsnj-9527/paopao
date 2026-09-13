@@ -1,0 +1,420 @@
+{
+    "runAt": "2026-09-13 22:20:26",
+    "mode": "replay",
+    "model": "deepseek-v4-flash",
+    "total": 33,
+    "passed": 33,
+    "metrics": {
+        "toolSelectionAccuracy": 1.0,
+        "argumentAccuracy": 1.0,
+        "taskCompletionRate": 1.0,
+        "avgRounds": 2.0,
+        "avgEstimatedTokens": 1368.909090909091
+    },
+    "byCategory": [
+        {
+            "category": "memory",
+            "total": 6,
+            "passed": 6,
+            "completionRate": 1.0,
+            "toolSelectionAccuracy": 1.0
+        },
+        {
+            "category": "multi",
+            "total": 8,
+            "passed": 8,
+            "completionRate": 1.0,
+            "toolSelectionAccuracy": 1.0
+        },
+        {
+            "category": "note",
+            "total": 6,
+            "passed": 6,
+            "completionRate": 1.0,
+            "toolSelectionAccuracy": 1.0
+        },
+        {
+            "category": "reminder",
+            "total": 8,
+            "passed": 8,
+            "completionRate": 1.0,
+            "toolSelectionAccuracy": 1.0
+        },
+        {
+            "category": "time",
+            "total": 5,
+            "passed": 5,
+            "completionRate": 1.0,
+            "toolSelectionAccuracy": 1.0
+        }
+    ],
+    "attributionSummary": {},
+    "cases": [
+        {
+            "id": "mem-01",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1355,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-02",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1357,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-03",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1367,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-04",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact",
+                "create_note"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2070,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-05",
+            "category": "memory",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 673
+        },
+        {
+            "id": "mem-06",
+            "category": "memory",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 670
+        },
+        {
+            "id": "multi-01",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "create_reminder",
+                "create_note"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2076,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-02",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2083,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-03",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "remember_fact",
+                "get_time"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2066,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-04",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "remember_fact",
+                "create_reminder"
+            ],
+            "rounds": 4,
+            "estimatedTokens": 2830,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-05",
+            "category": "multi",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 672
+        },
+        {
+            "id": "multi-06",
+            "category": "multi",
+            "difficulty": "context",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1379,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-07",
+            "category": "multi",
+            "difficulty": "context",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 681
+        },
+        {
+            "id": "multi-08",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2087,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-01",
+            "category": "note",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1353,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-02",
+            "category": "note",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1352,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-03",
+            "category": "note",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1364,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-04",
+            "category": "note",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "create_note"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2068,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-05",
+            "category": "note",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 672
+        },
+        {
+            "id": "note-06",
+            "category": "note",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 670
+        },
+        {
+            "id": "rem-01",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_reminder"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1356,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-02",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_reminder"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1356,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-03",
+            "category": "reminder",
+            "difficulty": "hard",
+            "passed": true,
+            "tools": [
+                "create_reminder"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1356,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-04",
+            "category": "reminder",
+            "difficulty": "hard",
+            "passed": true,
+            "tools": [
+                "create_reminder"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1360,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-05",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_reminder"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1378,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-06",
+            "category": "reminder",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 670
+        },
+        {
+            "id": "rem-07",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1367,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-08",
+            "category": "reminder",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "create_reminder",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2076,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "time-01",
+            "category": "time",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1352
+        },
+        {
+            "id": "time-02",
+            "category": "time",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1354
+        },
+        {
+            "id": "time-03",
+            "category": "time",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1358
+        },
+        {
+            "id": "time-04",
+            "category": "time",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 669
+        },
+        {
+            "id": "time-05",
+            "category": "time",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 677
+        }
+    ]
+}

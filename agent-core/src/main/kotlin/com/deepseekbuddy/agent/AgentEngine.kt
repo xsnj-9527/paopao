@@ -1,11 +1,10 @@
-package com.deepseekbuddy.app.agent
+package com.deepseekbuddy.agent
 
-import android.util.Log
-import com.deepseekbuddy.app.agent.llm.DeepSeekClient
-import com.deepseekbuddy.app.agent.tools.RiskLevel
-import com.deepseekbuddy.app.agent.tools.ToolContext
-import com.deepseekbuddy.app.agent.tools.ToolRegistry
-import com.deepseekbuddy.app.agent.tools.ToolResult
+import com.deepseekbuddy.agent.llm.LlmClient
+import com.deepseekbuddy.agent.tools.RiskLevel
+import com.deepseekbuddy.agent.tools.ToolContext
+import com.deepseekbuddy.agent.tools.ToolRegistry
+import com.deepseekbuddy.agent.tools.ToolResult
 
 /**
  * Agent 循环（harness 心脏）：
@@ -14,7 +13,9 @@ import com.deepseekbuddy.app.agent.tools.ToolResult
  */
 class AgentEngine(
     private val registry: ToolRegistry,
-    private val clientFactory: (AgentConfig) -> DeepSeekClient,
+    private val clientFactory: (AgentConfig) -> LlmClient,
+    /** 日志出口。默认吞掉——库被当纯计算用时不该有副作用。 */
+    private val log: AgentLogger = AgentLogger.None,
 ) {
 
     companion object {
@@ -47,7 +48,7 @@ class AgentEngine(
         for (iteration in 0..MAX_TOOL_ITERATIONS) {
             val resp = client.chat(messages, registry.toOpenAiSchema(), onDelta, onReasoning)
             finalText += resp.text
-            Log.d(TAG, "iteration=$iteration textLen=${resp.text.length} toolCalls=${resp.toolCalls.size}")
+            log.d(TAG, "iteration=$iteration textLen=${resp.text.length} toolCalls=${resp.toolCalls.size}")
             if (resp.toolCalls.isEmpty()) return finalText
 
             for (tc in resp.toolCalls) {
@@ -62,7 +63,7 @@ class AgentEngine(
                     }
                     else -> registry.execute(tc.name, tc.argumentsJson, ctx)
                 }
-                Log.d(TAG, "tool '${tc.name}' -> success=${result.success}: ${result.message}")
+                log.d(TAG, "tool '${tc.name}' -> success=${result.success}: ${result.message}")
                 onToolResult(result.success, result.message)
                 messages += ChatMessage("assistant", content = null, toolCalls = listOf(tc))
                 messages += ChatMessage(

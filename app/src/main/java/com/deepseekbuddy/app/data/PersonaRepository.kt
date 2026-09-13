@@ -1,7 +1,7 @@
 package com.deepseekbuddy.app.data
 
 import android.content.Context
-import com.deepseekbuddy.app.agent.ChatMessage
+import com.deepseekbuddy.agent.ChatMessage
 import com.deepseekbuddy.app.agent.persona.Persona
 import com.deepseekbuddy.app.agent.persona.PersonaTemplates
 import com.deepseekbuddy.app.agent.persona.toEntity
