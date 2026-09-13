@@ -8,6 +8,8 @@ captures/
 .DS_Store
 # 签名密钥（绝不提交）
 releases/*.keystore
+# 里面是明文口令，同样绝不能提交
+releases/KEYSTORE_INFO.md
 
 # 说明：releases/ 下的 APK 安装包是刻意纳入版本管理的，方便直接下载安装
 

@@ -3,13 +3,32 @@
 > 一款把大模型装进手机的安卓原生应用。
 > **App 本体是一个 agent harness** —— 负责「模型 → 工具调用 → 执行 → 上下文回填」循环的运行时，UI 只是它的前端。
 
-**Kotlin 2.x · Jetpack Compose · Hilt · Room · OkHttp（手写 SSE）· 不引入任何 LLM SDK**
-57 个 Kotlin 源文件 / 约 7,600 行代码 / 18 个 Compose 界面
+**Kotlin 2.x · Jetpack Compose · Room · OkHttp（手写 SSE）· 不引入任何 LLM SDK**
+61 个 Kotlin 源文件 / 约 7,800 行代码（其中内核 12 个文件 / 713 行 + 2,332 行单测）/ 24 个 Compose 界面
+
+> 📌 **依赖注入用的是手写应用级容器，不是 Hilt。** 见 `data/PersonaRepository.kt` 的注释
+> 「应用级容器：手动 DI（Hilt 留到后续阶段）」—— 够用，就省掉一个编译期注解处理器。
 
 **当前版本 v1.0.0**（2026-08-13）
-安装包：[releases/泡泡-v1.0.0.apk](releases/泡泡-v1.0.0.apk)（Android 8.0 / API 26 及以上）
+安装包：[releases/泡泡-v1.0.0-agent-core.apk](releases/泡泡-v1.0.0-agent-core.apk)（Android 8.0 / API 26 及以上）
+　　↳ 这是**抽出 `agent-core` 内核之后**的构建，与旧包同签名、可直接覆盖升级
+旧版安装包：[releases/泡泡-v1.0.0.apk](releases/泡泡-v1.0.0.apk)（保留用于回滚）
 技术设计：[docs/TECH_DESIGN.md](docs/TECH_DESIGN.md)（17 章）
 使用说明：[releases/泡泡-使用文档.txt](releases/泡泡-使用文档.txt)
+
+---
+
+## 仓库里的三条线
+
+| 目录 | 是什么 | 怎么验 |
+|---|---|---|
+| `app/` | 安卓应用本体 | `./gradlew :app:assembleDebug` |
+| **`agent-core/`** | **Agent 内核抽成的纯 JVM 库**——零 Android 依赖，可脱离模拟器单测 | `cd agent-core && ./gradlew test` → 55 项 |
+| **`evals/`** | **Agent 评测框架**：33 条用例 + 5 个指标 + 轨迹采集 + 失败归因 + 回归对比 | `cd agent-core && ./gradlew runEval` |
+
+抽 `agent-core` 之前，跑一次 Agent 循环要 Room + AlarmManager + 模拟器 + 真实 API Key；
+现在纯 JVM、不联网也能跑，**评测才因此成为可能**。真实模型基线（`deepseek-v4-flash`）：
+任务完成率 **87.9%**（29/33）、参数正确率 **100%**、平均 1.94 轮 —— 详见 `evals/metrics.md`。
 
 ---
 
@@ -113,21 +132,37 @@ API Key 经 **Android Keystore** 加密后仅存本地，请求直连模型厂�
 - Android SDK（路径写入 `local.properties` 的 `sdk.dir`，该文件不入库）
 - Android 真机或模拟器（API 26+）
 
+> `agent-core/` 通过 `settings.gradle.kts` 里的 `includeBuild("agent-core")` 组合进主工程，
+> **不需要额外配置**，Gradle 会自动一起构建。想单独跑内核的单测就直接 `cd agent-core && ./gradlew test`。
+
 ## 构建与安装
 
 ```bash
 # Windows（cmd / PowerShell / Git Bash 均可）
-gradlew.bat assembleDebug          # 或 ./gradlew assembleDebug
+gradlew.bat assembleRelease        # 覆盖升级用这个（需自备密钥，见下）
+gradlew.bat assembleDebug          # 只是首次安装、手机上没装过旧版时才用它
 
-# 安装到已连接的设备
-gradlew.bat installDebug
+gradlew.bat installRelease         # 安装到已连接的设备
 ```
 
 也可直接用 Android Studio 打开工程目录（首次 Sync 会自动下载依赖，已配置阿里云镜像加速）。
 
-> ⚠️ 签名密钥未随仓库提供：`releases/paopao.keystore` 已被 `.gitignore` 排除，
-> 因此 `assembleRelease` 需要你自备密钥并替换 `app/build.gradle.kts` 中的 `signingConfigs`；
-> 只是自己装机测试的话用上面的 `assembleDebug` 即可。
+> ⚠️ **`assembleDebug` 生成的包装不到已经装过 release 版的手机上。**
+> debug 包用 SDK 自动生成的调试密钥签名（`CN=Android Debug`），而 release 包用的是你自己的密钥——
+> 包名相同而签名不同，Android 判定为「同一个应用被冒充」，直接拒装。
+>
+> 三条路，按推荐顺序：
+> 1. **用 release 密钥构建**：把 `paopao.keystore` 放到 `releases/` 下，跑 `assembleRelease` ——
+>    **可覆盖升级，App 数据（便签 / 记忆 / 人设）全部保留**。这是换机测试推荐的唯一方式。
+> 2. **给 debug 包换个包名**：在 `app/build.gradle.kts` 的 `buildTypes.debug` 里加
+>    `applicationIdSuffix = ".debug"`，就能和旧版并存安装、互不影响。
+> 3. 先彻底卸载旧版再装 —— 但**会清空所有数据**，且如果开了「应用双开/手机分身」，
+>    双开出来的副本是独立包，得一并卸载。
+
+> ⚠️ 签名密钥未随仓库提供：`releases/paopao.keystore` 与 `releases/KEYSTORE_INFO.md`
+> （内含明文口令）都已被 `.gitignore` 排除。`assembleRelease` 需要你自备密钥并替换
+> `app/build.gradle.kts` 中的 `signingConfigs`。
+> **密钥丢了就再也无法给已安装的 App 升级**，只能卸载重装、数据清空 —— 务必备份。
 
 ## 首次使用
 
@@ -154,29 +189,47 @@ gradlew.bat installDebug
 ## 目录结构
 
 ```
-app/src/main/java/com/deepseekbuddy/app/
-├── agent/            # harness：引擎、消息模型、工具系统
-│   ├── llm/          # DeepSeek 客户端（SSE 流式）
-│   ├── persona/      # 人设模型与模板
-│   ├── context/      # 上下文预算、滚动摘要、记忆抽取、情绪识别
-│   └── tools/        # 提醒 / 便签 / 记忆 / 时间
-├── ui/               # chat / contacts / memory / notes / onboarding / personas / profile / settings / theme
-├── data/             # SettingsStore（DataStore）与本地库
-├── reminder/         # 提醒调度（AlarmManager + 通知）
-├── worker/           # 后台任务
-├── util/
-└── MainActivity.kt
+paopao/
+├── app/                              # 安卓应用
+│   └── src/main/java/com/deepseekbuddy/app/
+│       ├── agent/persona/            # 人设模型与模板
+│       ├── agent/context/            # 上下文预算、滚动摘要、记忆抽取、情绪识别
+│       ├── agent/LogcatLogger.kt     # 把内核的日志出口接到 Logcat
+│       ├── ui/                       # chat / contacts / memory / notes / onboarding / personas / profile / settings / theme
+│       ├── data/                     # SettingsStore + Room（并实现内核的三个端口）
+│       ├── reminder/                 # 提醒调度（AlarmManager + 通知，实现 ReminderGateway）
+│       ├── worker/                   # 后台任务
+│       └── MainActivity.kt
+│
+├── agent-core/                       # ★ Agent 内核（纯 JVM，零 Android 依赖）
+│   └── src/
+│       ├── main/kotlin/com/deepseekbuddy/agent/
+│       │   ├── AgentEngine.kt        # 循环状态机
+│       │   ├── AgentLogger.kt        # 日志出口抽象
+│       │   ├── ChatModels.kt         # 消息 / 工具调用 / 配置
+│       │   ├── llm/                  # LlmClient 契约 + DeepSeek 流式实现
+│       │   ├── ports/                # NoteStore / MemoryStore / ReminderGateway
+│       │   └── tools/                # 四个内置工具 + 注册表
+│       └── test/                     # 55 项单测 + 评测 runner（2332 行）
+│
+└── evals/                            # ★ 评测框架
+    ├── cases/                        # 33 条用例（时间/便签/记忆/提醒/组合）
+    ├── replay/                       # 录制的模型回复，用于确定性回归
+    ├── reports/                      # 指标报告与失败归因表
+    └── metrics.md                    # 5 个指标 + 6 类归因的定义
 ```
 
 ## 路线图
 
-阶段 1（POC）→ 阶段 2（MVP：人设系统 + 记忆 + Room）→ 阶段 3（全部工具 + 确认机制 + 上下文预算）→ 阶段 4（个性化深化）→ 阶段 5（打磨发布），详见设计文档第 13 节。
+阶段 1（POC）→ 阶段 2（MVP：人设系统 + 记忆 + Room）→ **阶段 2.5（内核抽库 + 评测框架）** → 阶段 3（全部工具 + 确认机制 + 上下文预算）→ 阶段 4（个性化深化）→ 阶段 5（打磨发布），详见设计文档第 13 节。
 
 ## 已知限制
 
-- 目前没有单元测试与 UI 测试，回归靠手动验证 + 结构化日志（`Log.d(TAG, ...)` 覆盖每一轮推理与每一次工具执行）。
-- Agent 层可观测性只有日志，没有 trace 与指标。
-- 尚未做 Agent 效果评测（工具调用成功率、任务完成率的量化）。
+- **UI 层没有自动化测试**（`app/` 下无 test 源码集），回归仍靠手动验证。内核侧已有 55 项单测全程覆盖。
+- ~~Agent 层可观测性只有日志，没有 trace 与指标~~ → **内核侧已补**：`paopao-server`（同契约的 TS 实现）提供结构化 trace；安卓侧仍是 Logcat。
+- ~~尚未做 Agent 效果评测~~ → **已完成**，见 `evals/`：33 条用例、5 个指标、失败归因表、回归对比。
+  真实模型（`deepseek-v4-flash`）基线：任务完成率 **87.9%**、参数正确率 **100%**、平均 1.94 轮。
+- **App 侧依赖装配没有测试**：`app.container` 那套手写 DI 只经过编译检查，没有运行时验证。
 
 ---
 
