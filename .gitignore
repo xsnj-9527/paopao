@@ -10,3 +10,7 @@ captures/
 releases/*.keystore
 
 # 说明：releases/ 下的 APK 安装包是刻意纳入版本管理的，方便直接下载安装
+
+# 评测 runner 每跑一次都会重写这两份报告；baseline.json 是刻意留存的基线，要提交
+/evals/reports/latest.json
+/evals/reports/latest.md
