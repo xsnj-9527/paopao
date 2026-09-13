@@ -35,7 +35,7 @@ class NoteTool(private val notes: NoteStore) : Tool {
 
     override suspend fun execute(args: JsonObject, ctx: ToolContext): ToolResult {
         val title = args["title"]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
-            ?: return ToolResult.fail("缺少 title 参数")
+            ?: return ToolResult.invalid("缺少 title 参数")
         val content = args["content"]?.jsonPrimitive?.contentOrNull?.trim().orEmpty()
         notes.add(title, content)
         return ToolResult.ok("已保存便签「$title」")

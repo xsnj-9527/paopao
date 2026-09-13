@@ -1,5 +1,6 @@
 package com.deepseekbuddy.agent.eval
 
+import com.deepseekbuddy.agent.tools.FailureKind
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -65,11 +66,19 @@ object Evaluator {
     ): CaseOutcome {
         val failures = mutableListOf<String>()
 
-        // 1) 工具序列：严格有序、严格数量
+        // 1) 工具序列：期望的工具必须按顺序出现；多出来的调用只允许是 allowExtra 里声明的
+        //    （准备性调用，比如设提醒前先 get_time 拿当前时间）
         val actualTools = trajectory.toolCalls.map { it.name }
-        val toolSelectionOk = actualTools == case.expect.tools
+        val mainSeqOk = matchesToolSequence(actualTools, case.expect.tools, case.expect.allowExtra)
+        val altSeqOk = case.expect.alternatives.any {
+            matchesToolSequence(actualTools, it, case.expect.allowExtra)
+        }
+        val toolSelectionOk = mainSeqOk || altSeqOk
         if (!toolSelectionOk) {
-            failures += "工具序列不符：期望 ${case.expect.tools}，实际 $actualTools"
+            val extra = case.expect.allowExtra
+            val extraNote = if (extra.isEmpty()) "" else "（允许额外出现 $extra）"
+            val altNote = if (case.expect.alternatives.isEmpty()) "" else "，或 ${case.expect.alternatives}"
+            failures += "工具序列不符：期望 ${case.expect.tools}$altNote$extraNote，实际 $actualTools"
         }
 
         // 2) 反向断言：出现了禁止的工具
@@ -79,9 +88,11 @@ object Evaluator {
             failures += "调用了禁止的工具：$hitForbidden"
         }
 
-        // 3) 参数匹配器：对该工具的**任一次**调用满足即可
+        // 3) 参数匹配器：对该工具的**任一次**调用满足即可。
+        //    只在走了主期望时校验 —— 走了替代序列（比如「不调工具、反问用户」）时，
+        //    主期望里针对某个工具的参数断言根本不适用，否则会把合格解判失败。
         var argsOk = true
-        for ((toolName, matchers) in case.expect.args) {
+        for ((toolName, matchers) in if (mainSeqOk) case.expect.args else emptyMap()) {
             val invocations = trajectory.toolCalls.filter { it.name == toolName }
             if (invocations.isEmpty()) {
                 argsOk = false
@@ -145,12 +156,34 @@ object Evaluator {
     }
 
     /**
+     * 期望的工具序列是否成立。
+     *
+     * 规则：把 expected 当作 actual 的子序列去匹配（保持顺序），
+     * 且 actual 里所有**没被匹配上**的调用都必须出现在 allowExtra 中。
+     *
+     * 这样既能抓住「该调没调」「调错顺序」「多调了不该调的」，
+     * 又不会因为一个合理的准备性调用（get_time）就判失败。
+     */
+    fun matchesToolSequence(actual: List<String>, expected: List<String>, allowExtra: List<String>): Boolean {
+        var cursor = 0
+        for (tool in actual) {
+            if (cursor < expected.size && tool == expected[cursor]) {
+                cursor += 1
+            } else if (tool !in allowExtra) {
+                return false // 冒出一个既不是期望、也不允许的调用
+            }
+        }
+        return cursor == expected.size // 期望的都得被匹配到
+    }
+
+    /**
      * 归因分类。
      *
      * 顺序很重要：先判「工具自己是不是坏了」，再判模型的锅 —— 否则工具 bug 会被
      * 误算成模型不会用，进而去改提示词，越改越糟。
      */
-    private fun classify(
+    /** internal 而非 private：六个归因分支要能逐个精确验证。 */
+    internal fun classify(
         case: EvalCase,
         t: Trajectory,
         toolSelectionOk: Boolean,
@@ -158,14 +191,28 @@ object Evaluator {
         argsOk: Boolean,
         answerOk: Boolean,
     ): Attribution = when {
-        // 工具执行失败 —— 先查工具
-        t.toolCalls.any { !it.success } -> Attribution.TOOL_DEFECT
+        // 只有**工具内部**出错才算工具问题。
+        // `create_reminder` 拒绝一个已经过去的时间是**正确行为**，
+        // 不能算成工具的锅 —— 那是模型的参数错了。原先只看 success 标志，
+        // 于是把这类正确拒绝误归成「工具问题」（multi-04 就是这样被误判的）。
+        t.toolCalls.any { !it.success && it.failureKind == FailureKind.INTERNAL } -> Attribution.TOOL_DEFECT
+
+        // 工具按规则拒绝了输入（时间已过去、参数缺失、格式不对）→ 模型的参数问题。
+        // 这一条要排在「序列不匹配」**前面**：序列不匹配往往只是它造成的后果
+        // （模型第一次传了过去的时刻、失败后重试，于是多出一次调用）。
+        // 失败的工具调用是更具体、更可操作的信号。
+        t.toolCalls.any { !it.success && it.failureKind == FailureKind.INVALID_INPUT } ->
+            Attribution.MODEL_ARGUMENTS
 
         // 运行期异常且不是模型的问题
         t.error != null && t.toolCalls.isEmpty() -> Attribution.CASE_PROBLEM
 
         // 选了不该选的工具 / 该调没调
         !forbiddenOk || !toolSelectionOk -> Attribution.MODEL_TOOL_CHOICE
+
+        // 工具按规则拒绝了输入（时间已过去、参数缺失、格式不对）→ 模型的参数问题
+        t.toolCalls.any { !it.success && it.failureKind == FailureKind.INVALID_INPUT } ->
+            Attribution.MODEL_ARGUMENTS
 
         // 工具选对了，参数不对
         !argsOk -> Attribution.MODEL_ARGUMENTS

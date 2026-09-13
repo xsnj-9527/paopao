@@ -8,6 +8,7 @@ import com.deepseekbuddy.agent.InMemoryNoteStore
 import com.deepseekbuddy.agent.RecordingReminderGateway
 import com.deepseekbuddy.agent.llm.ChatResponse
 import com.deepseekbuddy.agent.llm.LlmClient
+import com.deepseekbuddy.agent.tools.FailureKind
 import com.deepseekbuddy.agent.tools.NoteTool
 import com.deepseekbuddy.agent.tools.RememberFactTool
 import com.deepseekbuddy.agent.tools.ReminderTool
@@ -23,6 +24,8 @@ data class ToolCallRecord(
     val argumentsJson: String,
     val success: Boolean,
     val message: String,
+    /** 失败类型。归因要靠它区分「工具坏了」和「模型给错了输入」。 */
+    val failureKind: FailureKind? = null,
 )
 
 /** 一条用例跑完之后的全部可观测结果。 */
@@ -122,10 +125,14 @@ object EvalHarness {
                 personaId = 1L,
                 onDelta = {},
                 onToolCall = { name, argsJson -> calls += ToolCallRecord(name, argsJson, false, "") },
-                onToolResult = { success, message ->
+                onToolResult = { result ->
                     val last = calls.lastOrNull()
                     if (last != null) {
-                        calls[calls.lastIndex] = last.copy(success = success, message = message)
+                        calls[calls.lastIndex] = last.copy(
+                            success = result.success,
+                            message = result.message,
+                            failureKind = result.failureKind,
+                        )
                     }
                 },
                 onConfirmRequest = { _, _ -> true },

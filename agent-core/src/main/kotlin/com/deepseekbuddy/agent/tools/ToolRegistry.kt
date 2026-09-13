@@ -27,7 +27,7 @@ class ToolRegistry(tools: List<Tool>) {
     }
 
     suspend fun execute(name: String, argumentsJson: String, ctx: ToolContext): ToolResult {
-        val tool = byName[name] ?: return ToolResult.fail("未知工具：$name")
+        val tool = byName[name] ?: return ToolResult.invalid("未知工具：$name")
         val args = runCatching { Json.parseToJsonElement(argumentsJson).jsonObject }
             .getOrDefault(JsonObject(emptyMap()))
         return try {

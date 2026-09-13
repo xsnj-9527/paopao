@@ -1,0 +1,486 @@
+{
+    "runAt": "2026-09-13 22:28:46",
+    "mode": "live",
+    "model": "deepseek-v4-flash",
+    "total": 33,
+    "passed": 24,
+    "metrics": {
+        "toolSelectionAccuracy": 0.7272727272727273,
+        "argumentAccuracy": 0.9047619047619048,
+        "taskCompletionRate": 0.7272727272727273,
+        "avgRounds": 1.9393939393939394,
+        "avgEstimatedTokens": 1331.3636363636363
+    },
+    "byCategory": [
+        {
+            "category": "memory",
+            "total": 6,
+            "passed": 6,
+            "completionRate": 1.0,
+            "toolSelectionAccuracy": 1.0
+        },
+        {
+            "category": "multi",
+            "total": 8,
+            "passed": 6,
+            "completionRate": 0.75,
+            "toolSelectionAccuracy": 0.75
+        },
+        {
+            "category": "note",
+            "total": 6,
+            "passed": 5,
+            "completionRate": 0.8333333333333334,
+            "toolSelectionAccuracy": 0.8333333333333334
+        },
+        {
+            "category": "reminder",
+            "total": 8,
+            "passed": 3,
+            "completionRate": 0.375,
+            "toolSelectionAccuracy": 0.375
+        },
+        {
+            "category": "time",
+            "total": 5,
+            "passed": 4,
+            "completionRate": 0.8,
+            "toolSelectionAccuracy": 0.8
+        }
+    ],
+    "attributionSummary": {
+        "MODEL_TOOL_CHOICE": 8,
+        "TOOL_DEFECT": 1
+    },
+    "cases": [
+        {
+            "id": "mem-01",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1355,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-02",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1366,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-03",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1376,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-04",
+            "category": "memory",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "remember_fact",
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1380,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "mem-05",
+            "category": "memory",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 673
+        },
+        {
+            "id": "mem-06",
+            "category": "memory",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 670
+        },
+        {
+            "id": "multi-01",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_reminder, create_note]，实际 [get_time, create_note]",
+                "没有 create_reminder 的调用来校验参数"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time",
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1385,
+            "toolSelectionOk": false,
+            "argsOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-02",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2083,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-03",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "remember_fact",
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1380,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-04",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [get_time, remember_fact, create_reminder]，实际 [get_time, remember_fact, create_reminder, create_reminder]",
+                "工具 create_reminder 执行失败：提醒时间必须晚于当前时间"
+            ],
+            "attribution": "TOOL_DEFECT",
+            "attributionLabel": "工具问题",
+            "tools": [
+                "get_time",
+                "remember_fact",
+                "create_reminder",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2147,
+            "toolSelectionOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-05",
+            "category": "multi",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 672
+        },
+        {
+            "id": "multi-06",
+            "category": "multi",
+            "difficulty": "context",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1380,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "multi-07",
+            "category": "multi",
+            "difficulty": "context",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 681
+        },
+        {
+            "id": "multi-08",
+            "category": "multi",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2090,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-01",
+            "category": "note",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1353,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-02",
+            "category": "note",
+            "difficulty": "single",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_note]，实际 [get_time, remember_fact, create_note]"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time",
+                "remember_fact",
+                "create_note"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2076,
+            "toolSelectionOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-03",
+            "category": "note",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1364,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-04",
+            "category": "note",
+            "difficulty": "multi-step",
+            "passed": true,
+            "tools": [
+                "get_time",
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1378,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "note-05",
+            "category": "note",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 672
+        },
+        {
+            "id": "note-06",
+            "category": "note",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 670
+        },
+        {
+            "id": "rem-01",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_reminder]，实际 [get_time, create_reminder]"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2060,
+            "toolSelectionOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-02",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_reminder]，实际 [get_time, create_reminder]"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2059,
+            "toolSelectionOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-03",
+            "category": "reminder",
+            "difficulty": "hard",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_reminder]，实际 [get_time]",
+                "没有 create_reminder 的调用来校验参数"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1358,
+            "toolSelectionOk": false,
+            "argsOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-04",
+            "category": "reminder",
+            "difficulty": "hard",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_reminder]，实际 [get_time, create_reminder]"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2065,
+            "toolSelectionOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-05",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_reminder"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1378,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-06",
+            "category": "reminder",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 670
+        },
+        {
+            "id": "rem-07",
+            "category": "reminder",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "create_note"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1368,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "rem-08",
+            "category": "reminder",
+            "difficulty": "multi-step",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [create_reminder, create_reminder]，实际 [get_time, create_reminder, create_reminder]"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "tools": [
+                "get_time",
+                "create_reminder",
+                "create_reminder"
+            ],
+            "rounds": 3,
+            "estimatedTokens": 2103,
+            "toolSelectionOk": false,
+            "hasArgsExpectation": true
+        },
+        {
+            "id": "time-01",
+            "category": "time",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1352
+        },
+        {
+            "id": "time-02",
+            "category": "time",
+            "difficulty": "single",
+            "passed": true,
+            "tools": [
+                "get_time"
+            ],
+            "rounds": 2,
+            "estimatedTokens": 1354
+        },
+        {
+            "id": "time-03",
+            "category": "time",
+            "difficulty": "single",
+            "passed": false,
+            "failures": [
+                "工具序列不符：期望 [get_time]，实际 []"
+            ],
+            "attribution": "MODEL_TOOL_CHOICE",
+            "attributionLabel": "模型问题 · 工具选择",
+            "rounds": 1,
+            "estimatedTokens": 671,
+            "toolSelectionOk": false
+        },
+        {
+            "id": "time-04",
+            "category": "time",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 669
+        },
+        {
+            "id": "time-05",
+            "category": "time",
+            "difficulty": "negative",
+            "passed": true,
+            "rounds": 1,
+            "estimatedTokens": 677
+        }
+    ]
+}

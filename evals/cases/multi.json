@@ -10,40 +10,71 @@
       "difficulty": "multi-step",
       "prompt": "20 分钟后提醒我关火，另外帮我记个便签：今天做了番茄炒蛋。",
       "expect": {
-        "tools": ["create_reminder", "create_note"],
+        "tools": [
+          "create_reminder",
+          "create_note"
+        ],
         "args": {
           "create_reminder": {
-            "triggerAt": { "iso8601": true, "at": "2026-09-14T22:50:00+08:00" }
+            "triggerAt": {
+              "iso8601": true,
+              "at": "2026-09-14T22:50:00+08:00"
+            }
           },
           "create_note": {
-            "content": { "containsAny": ["番茄炒蛋"] }
+            "content": {
+              "containsAny": [
+                "番茄炒蛋"
+              ]
+            }
           }
-        }
+        },
+        "allowExtra": [
+          "get_time"
+        ]
       },
-      "rationale": "一提醒 + 一便签，两个不同工具。考察意图拆分与参数不串味。"
+      "rationale": "一提醒 + 一便签，两个不同工具。考察意图拆分与参数不串味。 〔2026-09-13 修正〕期望序列改为「允许 get_time 前置」：系统提示词没有注入当前时间、get_time 的 description 又明确要求不要自行推算，所以先查时间再算相对时间是遵守指令，原先按严格序列判定把它误判成了选错工具。"
     },
     {
       "id": "multi-02",
       "difficulty": "multi-step",
       "prompt": "现在几点？然后设置一个 30 分钟后的提醒，内容是喝水。",
       "expect": {
-        "tools": ["get_time", "create_reminder"],
+        "tools": [
+          "get_time",
+          "create_reminder"
+        ],
         "args": {
           "create_reminder": {
-            "triggerAt": { "iso8601": true, "at": "2026-09-14T23:00:00+08:00" }
+            "triggerAt": {
+              "iso8601": true,
+              "at": "2026-09-14T23:00:00+08:00"
+            }
           }
-        }
+        },
+        "allowExtra": [
+          "get_time"
+        ]
       },
-      "rationale": "先取时间再算相对偏移。若模型只用自己推算的时间，triggerAt 会偏离基准。"
+      "rationale": "先取时间再算相对偏移。若模型只用自己推算的时间，triggerAt 会偏离基准。 〔2026-09-13 修正〕期望序列改为「允许 get_time 前置」：系统提示词没有注入当前时间、get_time 的 description 又明确要求不要自行推算，所以先查时间再算相对时间是遵守指令，原先按严格序列判定把它误判成了选错工具。"
     },
     {
       "id": "multi-03",
       "difficulty": "multi-step",
       "prompt": "记住我每周三晚上要打球。然后帮我看看现在几点。",
       "expect": {
-        "tools": ["remember_fact", "get_time"],
+        "tools": [
+          "remember_fact",
+          "get_time"
+        ],
         "args": {
-          "remember_fact": { "content": { "containsAny": ["打球"] } }
+          "remember_fact": {
+            "content": {
+              "containsAny": [
+                "打球"
+              ]
+            }
+          }
         }
       },
       "rationale": "长期事实 + 时间查询。注意「每周三」是周期性事实，应存记忆而不是设一条提醒。"
@@ -53,15 +84,31 @@
       "difficulty": "multi-step",
       "prompt": "帮我做三件事：看看现在几点；记住我下个月要搬家；再设一个明天早上 8 点的提醒去交房租。",
       "expect": {
-        "tools": ["get_time", "remember_fact", "create_reminder"],
+        "tools": [
+          "get_time",
+          "remember_fact",
+          "create_reminder"
+        ],
         "args": {
-          "remember_fact": { "content": { "containsAny": ["搬家"] } },
+          "remember_fact": {
+            "content": {
+              "containsAny": [
+                "搬家"
+              ]
+            }
+          },
           "create_reminder": {
-            "triggerAt": { "iso8601": true, "at": "2026-09-15T08:00:00+08:00" }
+            "triggerAt": {
+              "iso8601": true,
+              "at": "2026-09-15T08:00:00+08:00"
+            }
           }
-        }
+        },
+        "allowExtra": [
+          "get_time"
+        ]
       },
-      "rationale": "三工具全用上，且顺序被用户显式指定。考察长指令下的完整执行，不掉项。"
+      "rationale": "三工具全用上，且顺序被用户显式指定。考察长指令下的完整执行，不掉项。 〔2026-09-13 修正〕期望序列改为「允许 get_time 前置」：系统提示词没有注入当前时间、get_time 的 description 又明确要求不要自行推算，所以先查时间再算相对时间是遵守指令，原先按严格序列判定把它误判成了选错工具。"
     },
     {
       "id": "multi-05",
@@ -69,7 +116,12 @@
       "prompt": "随便聊两句吧，今天过得怎么样？",
       "expect": {
         "tools": [],
-        "forbidden": ["get_time", "create_note", "remember_fact", "create_reminder"],
+        "forbidden": [
+          "get_time",
+          "create_note",
+          "remember_fact",
+          "create_reminder"
+        ],
         "answerContains": []
       },
       "rationale": "反例：纯闲聊。这是最基本的「不该调工具」基线，用来验证评测本身没有把「调用工具」当成默认正确。"
@@ -78,15 +130,27 @@
       "id": "multi-06",
       "difficulty": "context",
       "history": [
-        { "role": "user", "content": "我下周要去杭州出差三天。" },
-        { "role": "assistant", "content": "好的，记下了。" }
+        {
+          "role": "user",
+          "content": "我下周要去杭州出差三天。"
+        },
+        {
+          "role": "assistant",
+          "content": "好的，记下了。"
+        }
       ],
       "prompt": "帮我把这件事记成便签，提醒我订酒店。",
       "expect": {
-        "tools": ["create_note"],
+        "tools": [
+          "create_note"
+        ],
         "args": {
           "create_note": {
-            "content": { "containsAny": ["酒店"] }
+            "content": {
+              "containsAny": [
+                "酒店"
+              ]
+            }
           }
         }
       },
@@ -96,14 +160,25 @@
       "id": "multi-07",
       "difficulty": "context",
       "history": [
-        { "role": "user", "content": "记住我对芒果过敏。" },
-        { "role": "assistant", "content": "记住了，以后会注意。" }
+        {
+          "role": "user",
+          "content": "记住我对芒果过敏。"
+        },
+        {
+          "role": "assistant",
+          "content": "记住了，以后会注意。"
+        }
       ],
       "prompt": "刚才我说过什么来着？",
       "expect": {
         "tools": [],
-        "forbidden": ["remember_fact", "create_note"],
-        "answerContains": ["芒果"]
+        "forbidden": [
+          "remember_fact",
+          "create_note"
+        ],
+        "answerContains": [
+          "芒果"
+        ]
       },
       "rationale": "考察「记忆已经存过了」时不该重复存。同时答案要能复述出芒果——工具调用为 0 但答案必须正确，防止「用调工具代替回答」。"
     },
@@ -112,9 +187,16 @@
       "difficulty": "multi-step",
       "prompt": "先看看现在几点，如果已经过了晚上 10 点，就提醒我该睡觉了。",
       "expect": {
-        "tools": ["get_time", "create_reminder"],
+        "tools": [
+          "get_time",
+          "create_reminder"
+        ],
         "args": {
-          "create_reminder": { "triggerAt": { "iso8601": true } }
+          "create_reminder": {
+            "triggerAt": {
+              "iso8601": true
+            }
+          }
         }
       },
       "rationale": "条件分支：now 是 22:30，条件成立 → 必须设提醒。考察模型是否会基于工具返回的真实时间做判断，而不是忽略条件直接跳过。"

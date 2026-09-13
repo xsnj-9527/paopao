@@ -42,10 +42,10 @@ class RememberFactTool(private val memories: MemoryStore) : Tool {
 
     override suspend fun execute(args: JsonObject, ctx: ToolContext): ToolResult {
         if (ctx.personaId <= 0) {
-            return ToolResult.fail("群聊里先不记啦，私聊的时候告诉我，我会好好记住的")
+            return ToolResult.invalid("群聊里先不记啦，私聊的时候告诉我，我会好好记住的")
         }
         val content = args["content"]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
-            ?: return ToolResult.fail("缺少 content 参数")
+            ?: return ToolResult.invalid("缺少 content 参数")
         val category = args["category"]?.jsonPrimitive?.contentOrNull
             ?.takeIf { it in listOf("偏好", "事实", "关系", "任务") } ?: "事实"
         val importance = args["importance"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?.coerceIn(1, 5) ?: 3

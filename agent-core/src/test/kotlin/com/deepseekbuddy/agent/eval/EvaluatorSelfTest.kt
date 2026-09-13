@@ -32,10 +32,14 @@ class EvaluatorSelfTest {
         forbidden: List<String> = emptyList(),
         args: Map<String, Map<String, ArgMatcher>> = emptyMap(),
         answerContains: List<String> = emptyList(),
+        allowExtra: List<String> = emptyList(),
     ) = EvalCase(
         id = id,
         prompt = prompt,
-        expect = Expect(tools, forbidden, args, answerContains),
+        expect = Expect(
+            tools = tools, forbidden = forbidden, args = args,
+            answerContains = answerContains, allowExtra = allowExtra,
+        ),
     )
 
     /** 脚本：一轮是模型回复（可能带工具调用），按顺序给。 */
@@ -113,20 +117,22 @@ class EvaluatorSelfTest {
         assertTrue(!outcomes.getValue("B-no-tool").passed, "B 应当失败（没调工具）")
         assertTrue(!outcomes.getValue("C-forbidden").passed, "C 应当失败（调了禁止工具）")
         assertTrue(!outcomes.getValue("D-wrong-arg").passed, "D 应当失败（时间算错）")
-        assertTrue(!outcomes.getValue("E-tool-defect").passed, "E 应当失败（工具拒绝执行）")
+        assertTrue(!outcomes.getValue("E-tool-defect").passed, "E 应当失败（工具按规则拒绝了输入）")
         assertTrue(!outcomes.getValue("F-incomplete").passed, "F 应当失败（回答缺关键词）")
     }
 
     @Test
-    fun `归因分类落在正确的格子里`() = runTest {
+    fun `归因分类落在正确的格子里（端到端）`() = runTest {
         val o = runFixture().associateBy { it.caseId }
 
         assertEquals(null, o.getValue("A-pass").attribution, "通过的用例不该有归因")
         assertEquals(Attribution.MODEL_TOOL_CHOICE, o.getValue("B-no-tool").attribution)
         assertEquals(Attribution.MODEL_TOOL_CHOICE, o.getValue("C-forbidden").attribution)
         assertEquals(Attribution.MODEL_ARGUMENTS, o.getValue("D-wrong-arg").attribution)
-        // 关键：工具返回失败时先判工具，不能算成模型的锅
-        assertEquals(Attribution.TOOL_DEFECT, o.getValue("E-tool-defect").attribution)
+        // 关键修正：create_reminder 拒绝一个已经过去的时间是**正确行为**，
+        // 那是模型的参数算错了，不是工具坏了。原先只看 success 标志，
+        // 会把这类正确拒绝误归成「工具问题」。
+        assertEquals(Attribution.MODEL_ARGUMENTS, o.getValue("E-tool-defect").attribution)
         assertEquals(Attribution.MODEL_INCOMPLETE, o.getValue("F-incomplete").attribution)
     }
 
@@ -187,12 +193,100 @@ class EvaluatorSelfTest {
 
         assertEquals(
             mapOf(
-                "MODEL_ARGUMENTS" to 1,
+                "MODEL_ARGUMENTS" to 2,
                 "MODEL_INCOMPLETE" to 1,
                 "MODEL_TOOL_CHOICE" to 2,
-                "TOOL_DEFECT" to 1,
             ),
             report.attributionSummary,
+        )
+    }
+
+    @Test
+    fun `工具序列判定：允许准备性调用但不多放过`() {
+        fun ok(actual: List<String>, expected: List<String>, allow: List<String>) =
+            Evaluator.matchesToolSequence(actual, expected, allow)
+
+        // 严格相等仍然成立
+        assertTrue(ok(listOf("get_time"), listOf("get_time"), emptyList()))
+        assertTrue(!ok(listOf("get_time", "create_note"), listOf("get_time"), emptyList()))
+
+        // 这条是本轮修正的核心：设提醒前先查时间是允许的
+        assertTrue(ok(listOf("get_time", "create_reminder"), listOf("create_reminder"), listOf("get_time")))
+        assertTrue(ok(listOf("get_time", "create_reminder", "create_note"),
+            listOf("create_reminder", "create_note"), listOf("get_time")))
+
+        // 但不能拿 allowExtra 掩盖真问题：
+        // 期望的两个工具只调了一个 —— 不许通过
+        assertTrue(!ok(listOf("get_time"), listOf("create_reminder"), listOf("get_time")))
+        // 顺序反了也不许通过
+        assertTrue(!ok(listOf("create_note", "create_reminder"),
+            listOf("create_reminder", "create_note"), listOf("get_time")))
+        // 多出来一个既非期望、也不在 allowExtra 里的调用 —— 不许通过
+        assertTrue(!ok(listOf("get_time", "remember_fact", "create_note"),
+            listOf("create_note"), listOf("get_time")))
+        // 期望为空时，任何非 allowExtra 的调用都算失败
+        assertTrue(ok(listOf(), emptyList(), emptyList()))
+        assertTrue(!ok(listOf("remember_fact"), emptyList(), listOf("get_time")))
+        assertTrue(ok(listOf("get_time"), emptyList(), listOf("get_time")))
+    }
+
+    /** 造一个只有工具调用与成败的轨迹，用来单独验证归因分类。 */
+    private fun traj(
+        calls: List<ToolCallRecord> = emptyList(),
+        error: String? = null,
+        answer: String = "",
+    ) = Trajectory(
+        caseId = "synthetic", category = "synthetic", toolCalls = calls,
+        finalAnswer = answer, rounds = 1, estimatedTokens = 1, error = error,
+    )
+
+    private fun callRecord(
+        name: String = "t", success: Boolean = true,
+        kind: com.deepseekbuddy.agent.tools.FailureKind? = null,
+    ) = ToolCallRecord(name, "{}", success, if (success) "ok" else "bad", kind)
+
+    @Test
+    fun `六个归因分支逐个精确验证`() {
+        val anyCase = case("synthetic", "x")
+        fun classify(t: Trajectory, seqOk: Boolean = true, forbidOk: Boolean = true,
+                     argsOk: Boolean = true, answerOk: Boolean = true) =
+            Evaluator.classify(anyCase, t, seqOk, forbidOk, argsOk, answerOk)
+
+        // 1) 工具**内部**出错 → 工具问题
+        assertEquals(
+            Attribution.TOOL_DEFECT,
+            classify(traj(listOf(callRecord(success = false,
+                kind = com.deepseekbuddy.agent.tools.FailureKind.INTERNAL)))),
+        )
+
+        // 2) 工具按规则拒绝输入 → 模型的参数问题（不是工具问题！）
+        assertEquals(
+            Attribution.MODEL_ARGUMENTS,
+            classify(traj(listOf(callRecord(success = false,
+                kind = com.deepseekbuddy.agent.tools.FailureKind.INVALID_INPUT)))),
+        )
+
+        // 3) 调用序列不对 / 碰了禁止工具 → 模型选错了工具
+        assertEquals(Attribution.MODEL_TOOL_CHOICE, classify(traj(), seqOk = false))
+        assertEquals(Attribution.MODEL_TOOL_CHOICE, classify(traj(), forbidOk = false))
+
+        // 4) 工具对了、参数断言不通过 → 模型的参数问题
+        assertEquals(Attribution.MODEL_ARGUMENTS, classify(traj(), argsOk = false))
+
+        // 5) 工具与参数都对、回答不达标 → 模型没完成任务
+        assertEquals(Attribution.MODEL_INCOMPLETE, classify(traj(), answerOk = false))
+
+        // 6) 运行期异常且压根没调到工具 → 用例本身的问题
+        assertEquals(Attribution.CASE_PROBLEM, classify(traj(error = "boom")))
+
+        // 工具问题优先于序列问题：工具坏了的时候不该去怪模型选错
+        assertEquals(
+            Attribution.TOOL_DEFECT,
+            classify(
+                traj(listOf(callRecord(success = false,
+                    kind = com.deepseekbuddy.agent.tools.FailureKind.INTERNAL))),
+                seqOk = false,
+            ),
         )
     }
 

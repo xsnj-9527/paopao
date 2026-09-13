@@ -374,7 +374,7 @@ class ChatViewModel(
                     onReasoning = { r -> _ui.update { s -> s.copy(messages = s.messages.withLastAssistantReasoning { it + r }) } },
                     onConfirmRequest = { name, args -> requestConfirm(name, args) },
                     onToolCall = { name, args -> _ui.update { s -> s.copy(messages = s.messages + UiMessage.ToolCallCard(nextId++, name, formatArgs(name, args))) } },
-                    onToolResult = { ok, msg -> _ui.update { s -> s.copy(messages = s.messages.withLastToolCardResult(ok, msg)) } },
+                    onToolResult = { r -> _ui.update { s -> s.copy(messages = s.messages.withLastToolCardResult(r.success, r.message)) } },
                 )
                 val now = System.currentTimeMillis()
                 val userDbId = repo.appendMessage(conversationId, "user", trimmed, quotedId = quote?.dbId)

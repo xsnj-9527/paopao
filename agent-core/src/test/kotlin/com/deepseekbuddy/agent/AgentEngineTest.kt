@@ -233,7 +233,7 @@ class AgentEngineTest {
             personaId = 1L,
             onDelta = {},
             onToolCall = { _, _ -> },
-            onToolResult = { _, _ -> },
+            onToolResult = { _ -> },
             onConfirmRequest = { _, _ -> true },
         )
 
@@ -272,7 +272,7 @@ class AgentEngineTest {
         engine.run(
             config = config, history = emptyList(), userText = "hi", systemPrompt = "s", personaId = 1L,
             onDelta = {}, onReasoning = { reasonings += it },
-            onToolCall = { _, _ -> }, onToolResult = { _, _ -> }, onConfirmRequest = { _, _ -> true },
+            onToolCall = { _, _ -> }, onToolResult = { _ -> }, onConfirmRequest = { _, _ -> true },
         )
 
         assertEquals(listOf("这是思考过程"), reasonings)

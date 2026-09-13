@@ -33,7 +33,7 @@ class AgentEngine(
         onReasoning: (String) -> Unit = {},
         onConfirmRequest: suspend (name: String, argumentsJson: String) -> Boolean,
         onToolCall: (name: String, argumentsJson: String) -> Unit,
-        onToolResult: (success: Boolean, message: String) -> Unit,
+        onToolResult: (ToolResult) -> Unit,
     ): String {
         val client = clientFactory(config)
         val ctx = ToolContext(personaId)
@@ -55,16 +55,16 @@ class AgentEngine(
                 onToolCall(tc.name, tc.argumentsJson)
                 // 确认机制：FORBIDDEN 直接拦截；CONFIRM 挂起等待用户，拒绝则回填拒绝结果
                 val result = when (registry.riskOf(tc.name)) {
-                    RiskLevel.FORBIDDEN -> ToolResult.fail("该操作已被用户禁用")
+                    RiskLevel.FORBIDDEN -> ToolResult.invalid("该操作已被用户禁用")
                     RiskLevel.CONFIRM -> {
                         val allowed = onConfirmRequest(tc.name, tc.argumentsJson)
                         if (allowed) registry.execute(tc.name, tc.argumentsJson, ctx)
-                        else ToolResult.fail("用户拒绝了该操作")
+                        else ToolResult.invalid("用户拒绝了该操作")
                     }
                     else -> registry.execute(tc.name, tc.argumentsJson, ctx)
                 }
                 log.d(TAG, "tool '${tc.name}' -> success=${result.success}: ${result.message}")
-                onToolResult(result.success, result.message)
+                onToolResult(result)
                 messages += ChatMessage("assistant", content = null, toolCalls = listOf(tc))
                 messages += ChatMessage(
                     "tool",

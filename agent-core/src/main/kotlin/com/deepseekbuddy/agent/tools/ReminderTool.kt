@@ -43,13 +43,13 @@ class ReminderTool(
 
     override suspend fun execute(args: JsonObject, ctx: ToolContext): ToolResult {
         val title = args["title"]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
-            ?: return ToolResult.fail("缺少 title 参数")
+            ?: return ToolResult.invalid("缺少 title 参数")
         val triggerAt = args["triggerAt"]?.jsonPrimitive?.contentOrNull
-            ?: return ToolResult.fail("缺少 triggerAt 参数")
+            ?: return ToolResult.invalid("缺少 triggerAt 参数")
         val millis = parseTime(triggerAt)
-            ?: return ToolResult.fail("无法解析时间：$triggerAt，请使用 ISO 8601 格式（如 2026-08-13T20:00:00+08:00）")
+            ?: return ToolResult.invalid("无法解析时间：$triggerAt，请使用 ISO 8601 格式（如 2026-08-13T20:00:00+08:00）")
         if (millis <= now()) {
-            return ToolResult.fail("提醒时间必须晚于当前时间")
+            return ToolResult.invalid("提醒时间必须晚于当前时间")
         }
         scheduler.schedule(millis, title)
         val timeStr = DateTimeFormatter.ofPattern("M月d日 HH:mm")

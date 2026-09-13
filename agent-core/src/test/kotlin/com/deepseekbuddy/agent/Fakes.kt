@@ -111,7 +111,7 @@ class TrajectoryRecorder {
 
     fun onDelta(text: String) { events += Event.Delta(text) }
     fun onToolCall(name: String, args: String) { events += Event.ToolCallEvent(name, args) }
-    fun onToolResult(success: Boolean, message: String) { events += Event.ToolResultEvent(success, message) }
+    fun onToolResult(r: com.deepseekbuddy.agent.tools.ToolResult) { events += Event.ToolResultEvent(r.success, r.message) }
     fun onConfirm(name: String, allowed: Boolean) { events += Event.ConfirmRequested(name, allowed) }
 
     fun toolNames(): List<String> = events.filterIsInstance<Event.ToolCallEvent>().map { it.name }
