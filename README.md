@@ -4,7 +4,12 @@
 > **App 本体是一个 agent harness** —— 负责「模型 → 工具调用 → 执行 → 上下文回填」循环的运行时，UI 只是它的前端。
 
 **Kotlin 2.x · Jetpack Compose · Room · OkHttp（手写 SSE）· 不引入任何 LLM SDK**
-61 个 Kotlin 源文件 / 约 7,800 行代码（其中内核 12 个文件 / 713 行 + 2,332 行单测）/ 24 个 Compose 界面
+
+**71 个 Kotlin 文件 / 10,101 行** —— 应用 49 个 / 7,056 行 · 内核 12 个 / 713 行 · 单测 10 个 / 2,332 行 · **18 个 Compose 界面**
+
+> 这些数字都可以自己数：`find . -name "*.kt" | wc -l`、
+> `find app/src/main -name "*.kt" -exec cat {} + | wc -l`、
+> `find . -name "*Screen.kt" | wc -l`。
 
 > 📌 **依赖注入用的是手写应用级容器，不是 Hilt。** 见 `data/PersonaRepository.kt` 的注释
 > 「应用级容器：手动 DI（Hilt 留到后续阶段）」—— 够用，就省掉一个编译期注解处理器。
